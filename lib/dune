@@ -1,0 +1,3 @@
+(library
+ (name idp)
+ (libraries dream lwt uuidm yojson))

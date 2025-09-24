@@ -1,0 +1,9 @@
+<form action="/oauth2/auth" method="post">
+  <label for="username">Username: </label>
+  <input type="text" name="username"/><br/>
+  <label for="password">Password: </label>
+  <input type="password" name="password"/></br>
+  <input type="submit" value="Submit"/></br>
+  <input type="hidden" name="redirect_uri" value={{redirect_uri}}/>
+  <input type="hidden" name="state" value={{state}}/>
+</form>
