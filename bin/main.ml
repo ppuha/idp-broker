@@ -12,7 +12,7 @@ let run_server () =
   Dream.router [
     Dream.scope "/" [cors] Config.H.routes
   ]
-  |> Dream.logger
-  |> Dream.run ~port:5555
+  |> Dream.logger 
+  |> Dream.run ~port:5556 ~error_handler:Dream.debug_error_handler
 
 let () = run_server ()

@@ -1,6 +1,7 @@
 open Lwt.Infix
 
 type t = {
+  id : Uuidm.t;
   client_id : string;
   subject : string;
   issued_at : int;
@@ -24,6 +25,7 @@ module Store = Store.Inmem_store (struct
   type id = int
   type entry = t
   let get_id token = token.issued_at
+  let to_string token = token.id |> Uuidm.to_string
 end)
 
 module Introspector (Store : STORE) = struct

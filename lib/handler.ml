@@ -13,9 +13,8 @@ module Make
     Client_store.get client_id >>= function
     | Some client ->
       Dream.info (fun log -> log "client %s authenticated" client.client_id);
-      let code = Uuid.generate () in
-      let session = { client=client; code=code } in
-      let _ = Session_store.insert session in
+      let session = { client=client; code=Uuid.generate () } in
+      let code = Session_store.insert session in
       let redirect_uri =
         Uri.add_query_param
           (Uri.of_string redirect_uri)
@@ -41,6 +40,7 @@ module Make
     | _ -> Lwt.return None
 
   let handle_token req =
+    Dream.log "sessions: \n%s" (Session_store.dump ());
     session_of_form req >>= function
     | Some _session ->
       let token = Uuid.generate () in

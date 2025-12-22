@@ -6,4 +6,5 @@ type t = {
 module type STORE = sig
   val get : Uuidm.t -> t option Lwt.t
   val insert : t -> Uuidm.t
+  val dump : unit -> string
 end
