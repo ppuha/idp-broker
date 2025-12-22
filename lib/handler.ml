@@ -12,7 +12,7 @@ module Make
     let redirect_uri = query req "redirect_uri" |> Option.get in
     Client_store.get client_id >>= function
     | Some client ->
-      Dream.info (fun log -> log "client %s authenticated" client.client_id);
+      info (fun log -> log "client %s authenticated" client.client_id);
       let session = { client=client; code=Uuid.generate () } in
       let code = Session_store.insert session in
       let redirect_uri =
@@ -23,7 +23,7 @@ module Make
       in
       redirect ~status:`Moved_Permanently req redirect_uri
     | None ->
-      Dream.warning (fun log -> log "client %s not found " client_id);
+      warning (fun log -> log "client %s not found " client_id);
       respond ~code:401 "unathorized"
 
   let form_value form key =
@@ -40,7 +40,7 @@ module Make
     | _ -> Lwt.return None
 
   let handle_token req =
-    Dream.log "sessions: \n%s" (Session_store.dump ());
+    log "sessions: \n%s" (Session_store.dump ());
     session_of_form req >>= function
     | Some _session ->
       let token = Uuid.generate () in
@@ -53,7 +53,7 @@ module Make
       |> Yojson.Safe.to_string
       |> respond
     | None -> 
-      Dream.warning (fun log -> log "session not found");
+      warning (fun log -> log "session not found");
       respond ~code:401 "unathorized"
 
   let routes = [
