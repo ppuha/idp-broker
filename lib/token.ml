@@ -18,15 +18,9 @@ let claims token =
   ]
 
 module type STORE = sig
-  val get : int -> t option Lwt.t
+  val get : Uuidm.t -> t option Lwt.t
+  val insert : t -> Uuidm.t
 end
-
-module Store = Store.Inmem_store (struct
-  type id = int
-  type entry = t
-  let get_id token = token.issued_at
-  let to_string token = token.id |> Uuidm.to_string
-end)
 
 module Introspector (Store : STORE) = struct
   let introspect id =

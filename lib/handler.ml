@@ -5,7 +5,8 @@ open Session
 
 module Make
   (Client_store : Client.STORE)
-  (Session_store : Session.STORE) = struct
+  (Session_store : Session.STORE)
+  (Token_store : Token.STORE) = struct
 
   let handle_auth req =
     let client_id = query req "client_id" |> Option.get in
@@ -40,14 +41,24 @@ module Make
     | _ -> Lwt.return None
 
   let handle_token req =
+    let open Token in
     log "sessions: \n%s" (Session_store.dump ());
     session_of_form req >>= function
-    | Some _session ->
-      let token = Uuid.generate () in
+    | Some session ->
+      let id = Uuid.generate () in
       let now = Unix.time () in
       let exp = now +. 10.0 in
+      let token = { 
+        id=id; 
+        client_id=session.client.client_id; 
+        subject=session.client.client_id;
+        issued_at=now |> int_of_float;
+        expires_at=exp |> int_of_float; 
+      } in
+      let _ = Token_store.insert token
+      in
       `Assoc [
-        "access_token", `String (Uuidm.to_string token);
+        "access_token", `String (Uuidm.to_string token.id);
         "exp", `Int (int_of_float exp)
       ]
       |> Yojson.Safe.to_string
