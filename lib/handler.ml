@@ -67,8 +67,30 @@ module Make
       warning (fun log -> log "session not found");
       respond ~code:401 "unathorized"
 
+  let token_of_form req =
+    form ~csrf:false req >>= function
+    | `Ok form ->
+      let token = form_value form "token" |> Option.get in
+      Uuidm.of_string token
+      |> Option.get
+      |> Token_store.get >>= Lwt.return
+    | _ -> Lwt.return None
+
+  let handle_introspect req =
+    let open Token in
+    token_of_form req >>= fun token ->
+    let resp = match token with
+    | Some token ->
+      (if is_expired token then expired ()
+      else claims token)
+    | None ->
+      expired ()
+    in
+    Yojson.Safe.to_string resp |> Dream.respond
+
   let routes = [
     get "/oauth2/auth" handle_auth;
     post "/oauth2/token" handle_token;
+    post "/oauth2/introspect" handle_introspect;
   ]
 end

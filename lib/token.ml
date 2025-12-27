@@ -17,9 +17,19 @@ let claims token =
     "exp", `Int token.expires_at;
   ]
 
+let is_expired token =
+  let now = Unix.time () |> int_of_float in
+  token.expires_at < now
+
+let expired () =
+  `Assoc [
+    "active", `Bool false;
+  ]
+
 module type STORE = sig
   val get : Uuidm.t -> t option Lwt.t
   val insert : t -> Uuidm.t
+  val dump : unit -> string
 end
 
 module Introspector (Store : STORE) = struct
