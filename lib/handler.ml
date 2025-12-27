@@ -48,12 +48,12 @@ module Make
       let id = Uuid.generate () in
       let now = Unix.time () in
       let exp = now +. 10.0 in
-      let token = { 
-        id=id; 
-        client_id=session.client.client_id; 
+      let token = {
+        id=id;
+        client_id=session.client.client_id;
         subject=session.client.client_id;
         issued_at=now |> int_of_float;
-        expires_at=exp |> int_of_float; 
+        expires_at=exp |> int_of_float;
       } in
       let _ = Token_store.insert token
       in
@@ -63,7 +63,7 @@ module Make
       ]
       |> Yojson.Safe.to_string
       |> respond
-    | None -> 
+    | None ->
       warning (fun log -> log "session not found");
       respond ~code:401 "unathorized"
 

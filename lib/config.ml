@@ -20,8 +20,8 @@ end)
 
 module Token_store = Store.Inmem_store (struct
   open Token
-  type id = Uuidm.t
   type entry = t
+  type id = Uuidm.t
   let get_id token = token.id
   let to_string token = token.id |> Uuidm.to_string
 end)
