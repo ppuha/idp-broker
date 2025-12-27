@@ -1,3 +1,1 @@
-Random.init 63
-
-let generate () = Uuidm.v4_gen (Random.get_state ()) ()
+let generate = Uuidm.v4_gen (Random.State.make_self_init ())
