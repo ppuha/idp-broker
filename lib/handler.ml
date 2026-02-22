@@ -86,7 +86,7 @@ module Make
     | None ->
       expired ()
     in
-    Yojson.Safe.to_string resp |> Dream.respond
+    Yojson.Safe.to_string resp |> respond
 
   let routes = [
     get "/oauth2/auth" handle_auth;
