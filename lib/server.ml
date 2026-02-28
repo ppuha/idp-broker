@@ -12,4 +12,4 @@ let run_server port =
     scope "/" [cors] Config.H.routes
   ]
   |> logger
-  |> run ~port ~error_handler:debug_error_handler
+  |> run ~interface:"::" ~port ~error_handler:debug_error_handler
