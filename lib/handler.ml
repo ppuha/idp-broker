@@ -12,6 +12,9 @@ module Make
     let client_id = query req "client_id" |> Option.get in
     let redirect_uri = query req "redirect_uri" |> Option.get in
     Client_store.get client_id >>= function
+    | None ->
+      warning (fun log -> log "client %s not found " client_id);
+      respond ~code:401 "unathorized"
     | Some client ->
       info (fun log -> log "client %s authenticated" client.client_id);
       let session = { client=client; code=Uuid.generate () } in
@@ -23,9 +26,6 @@ module Make
         |> Uri.to_string
       in
       redirect ~status:`Moved_Permanently req redirect_uri
-    | None ->
-      warning (fun log -> log "client %s not found " client_id);
-      respond ~code:401 "unathorized"
 
   let form_value form key =
     List.find_opt (fun (k, _) -> k = key) form
@@ -44,6 +44,9 @@ module Make
     let open Token in
     log "sessions: \n%s" (Session_store.dump ());
     session_of_form req >>= function
+    | None ->
+      warning (fun log -> log "session not found");
+      respond ~code:401 "unathorized"
     | Some session ->
       let id = Uuid.generate () in
       let now = Unix.time () in
@@ -63,9 +66,6 @@ module Make
       ]
       |> Yojson.Safe.to_string
       |> respond
-    | None ->
-      warning (fun log -> log "session not found");
-      respond ~code:401 "unathorized"
 
   let token_of_form req =
     form ~csrf:false req >>= function
