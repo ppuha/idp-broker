@@ -1,4 +1,4 @@
 (executable
- (public_name idp)
+ (public_name idp-broker)
  (name main)
- (libraries idp dream))
+ (libraries idp_broker dream))

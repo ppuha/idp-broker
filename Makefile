@@ -1,5 +1,5 @@
 build:
 	dune build .
 
-run:
-	dune exec idp -- -p 5559
+run-local:
+	dune exec idp-broker -- -p 5557

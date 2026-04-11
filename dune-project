@@ -1,26 +1,24 @@
 (lang dune 3.17)
 
-(name idp)
+(name idp-broker)
 
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github ppuha/idp-broker))
 
-(authors "Author Name <author@example.com>")
+(authors "Péter Puha <ppuhap87@gmail.com>")
 
-(maintainers "Maintainer Name <maintainer@example.com>")
+(maintainers "Péter Puha <ppuhap87@gmail.com>")
 
 (license LICENSE)
 
 (documentation https://url/to/documentation)
 
 (package
- (name idp)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (name idp-broker)
+ (synopsis "IDP broker library and server")
+ (description "An OAuth2 IDP broker configurable by code")
  (depends ocaml)
  (tags
-  ("add topics" "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
+  ("oauth2" "broker" "h2m")))

@@ -1,4 +1,4 @@
-open Idp.Server
+open Idp_broker.Server
 
 let () =
   let port = ref 8080 in
