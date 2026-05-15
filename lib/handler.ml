@@ -2,13 +2,14 @@ open Lwt.Infix
 open Dream
 
 open Session
+open Render
 
 module Make
   (Client_store : Client.STORE)
   (Session_store : Session.STORE)
   (Token_store : Token.STORE) = struct
 
-  let handle_auth req =
+  let handle_auth_get req =
     let client_id = query req "client_id" |> Option.get in
     let redirect_uri = query req "redirect_uri" |> Option.get in
     Client_store.get client_id >>= function
@@ -17,6 +18,7 @@ module Make
       respond ~code:401 "unathorized"
     | Some client ->
       info (fun log -> log "client %s authenticated" client.client_id);
+
       let session = { client=client; code=Uuid.generate () } in
       let code = Session_store.insert session in
       let redirect_uri =
@@ -25,11 +27,26 @@ module Make
           ("code", [code |> Uuidm.to_string])
         |> Uri.to_string
       in
-      redirect ~status:`Moved_Permanently req redirect_uri
+      render_tmpl "/users/peterpuha/code/ml/idp/web/login.mustache" (`O [
+        "redirect_uri", `String redirect_uri;
+        "state", `String "1234";
+      ]) |> Dream.html
 
   let form_value form key =
     List.find_opt (fun (k, _) -> k = key) form
     |> Option.map snd
+
+  let handle_auth_post req =
+    form ~csrf:false req >>= function
+      | `Ok form ->
+        (match form_value form "redirect_uri" with
+        | Some redirect_uri ->
+            redirect
+              ~status:`Moved_Permanently
+              req
+              redirect_uri
+        | _ -> respond ~code:500 "bad form")
+      | _ -> respond ~code:500 "bad form"
 
   let session_of_form req =
     form ~csrf:false req >>= function
@@ -89,7 +106,8 @@ module Make
     Yojson.Safe.to_string resp |> respond
 
   let routes = [
-    get "/oauth2/auth" handle_auth;
+    get "/oauth2/auth" handle_auth_get;
+    post "/oauth2/auth" handle_auth_post;
     post "/oauth2/token" handle_token;
     post "/oauth2/introspect" handle_introspect;
   ]
