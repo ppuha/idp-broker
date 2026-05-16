@@ -3,6 +3,7 @@ open Dream
 
 open Session
 open Render
+open Util
 
 module Make
   (Client_store : Client.STORE)
@@ -19,32 +20,32 @@ module Make
     | Some client ->
       info (fun log -> log "client %s authenticated" client.client_id);
 
-      let session = { client=client; code=Uuid.generate () } in
-      let code = Session_store.insert session in
-      let redirect_uri =
-        Uri.add_query_param
-          (Uri.of_string redirect_uri)
-          ("code", [code |> Uuidm.to_string])
-        |> Uri.to_string
-      in
-      render_tmpl "/users/peterpuha/code/ml/idp/web/login.mustache" (`O [
-        "redirect_uri", `String redirect_uri;
-        "state", `String "1234";
-      ]) |> Dream.html
+      let session = {
+        id=Uuid.generate ();
+        client=client;
+        redirect_uri=redirect_uri;
+        code=Uuid.generate ()
+      } in
+      let session_id = Session_store.insert session in
 
-  let form_value form key =
-    List.find_opt (fun (k, _) -> k = key) form
-    |> Option.map snd
+      render_tmpl "/users/peterpuha/code/ml/idp/web/login.mustache" (`O [
+        "session_id", `String (session_id |> Uuidm.to_string);
+      ]) |> Dream.html
 
   let handle_auth_post req =
     form ~csrf:false req >>= function
       | `Ok form ->
-        (match form_value form "redirect_uri" with
-        | Some redirect_uri ->
+        (match form_value form "session_id" with
+        | Some session_id ->
+          (Session_store.get (Uuidm.of_string session_id |> Option.get) >>= fun session_opt ->
+          match session_opt with
+          | None -> respond ~code:404 (Printf.sprintf "no session with id %s was found" session_id)
+          | Some session ->
+            let redirect_uri = redirect_uri_with_code session.redirect_uri session.code in
             redirect
               ~status:`Moved_Permanently
               req
-              redirect_uri
+              redirect_uri)
         | _ -> respond ~code:500 "bad form")
       | _ -> respond ~code:500 "bad form"
 

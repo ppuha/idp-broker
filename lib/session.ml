@@ -1,5 +1,7 @@
 type t = {
+  id : Uuidm.t;
   client : Client.t;
+  redirect_uri : string;
   code : Uuidm.t;
 }
 
