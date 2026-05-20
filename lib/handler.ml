@@ -8,7 +8,14 @@ open Util
 module Make
   (Client_store : Client.STORE)
   (Session_store : Session.STORE)
-  (Token_store : Token.STORE) = struct
+  (Token_store : Token.STORE)
+  (Idp : Idp.S) = struct
+
+  let static_handler req =
+    let session_id = Dream.query req "session" |> Option.get in
+    render_tmpl "/users/peterpuha/code/ml/idp/web/login.mustache" (`O [
+      "session_id", `String session_id;
+    ]) |> Dream.html
 
   let handle_auth_get req =
     let client_id = query req "client_id" |> Option.get in
@@ -28,9 +35,8 @@ module Make
       } in
       let session_id = Session_store.insert session in
 
-      render_tmpl "/users/peterpuha/code/ml/idp/web/login.mustache" (`O [
-        "session_id", `String (session_id |> Uuidm.to_string);
-      ]) |> Dream.html
+      let auth_url = Idp.auth_url session_id in
+      redirect req (auth_url |> Uri.to_string)
 
   let handle_auth_post req =
     form ~csrf:false req >>= function
@@ -111,5 +117,6 @@ module Make
     post "/oauth2/auth" handle_auth_post;
     post "/oauth2/token" handle_token;
     post "/oauth2/introspect" handle_introspect;
+    get "/idp/auth" static_handler;
   ]
 end

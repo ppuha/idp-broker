@@ -14,8 +14,8 @@ module Session_store = Store.Inmem_store (struct
   open Session
   type entry = t
   type id = Uuidm.t
-  let get_id session = session.id
-  let to_string session = session.id|> Uuidm.to_string
+  let get_id session = session.code
+  let to_string session = session.code |> Uuidm.to_string
 end)
 
 module Token_store = Store.Inmem_store (struct
@@ -26,4 +26,6 @@ module Token_store = Store.Inmem_store (struct
   let to_string token = token.id |> Uuidm.to_string
 end)
 
-module H = Handler.Make (Client_store) (Session_store) (Token_store)
+module Idp = Idp.Static
+
+module H = Handler.Make (Client_store) (Session_store) (Token_store) (Idp)
