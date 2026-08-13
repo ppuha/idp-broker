@@ -9,7 +9,25 @@ module Make
   (Client_store : Client.STORE)
   (Session_store : Session.STORE)
   (Token_store : Token.STORE)
-  (Idp : Idp.S) = struct
+  (Idp_config : Idp.CONFIG) = struct
+
+  let select_handler req =
+    let session_id =
+      query req "session" |> Option.get
+      |> Uuidm.of_string |> Option.get
+    in
+    render_tmpl "/users/peterpuha/code/ml/idp/web/select.mustache" (
+      `O [
+        "idps",
+        `A (
+          Idp_config.idps
+          |> List.map (fun (module I : Idp.IDP) ->
+            `O [
+              ("name", `String I.name);
+              ("url", `String (I.auth_url session_id |> Uri.to_string));
+            ]
+        ))
+      ]) |> Dream.html
 
   let static_handler req =
     let session_id = Dream.query req "session" |> Option.get in
@@ -26,7 +44,6 @@ module Make
       respond ~code:401 "unathorized"
     | Some client ->
       info (fun log -> log "client %s authenticated" client.client_id);
-
       let session = {
         id=Uuid.generate ();
         client=client;
@@ -34,9 +51,7 @@ module Make
         code=Uuid.generate ()
       } in
       let session_id = Session_store.insert session in
-
-      let auth_url = Idp.auth_url session_id in
-      redirect req (auth_url |> Uri.to_string)
+      redirect req (Printf.sprintf "/idp/select?session=%s" (session_id |> Uuidm.to_string))
 
   let handle_auth_post req =
     form ~csrf:false req >>= function
@@ -118,5 +133,6 @@ module Make
     post "/oauth2/token" handle_token;
     post "/oauth2/introspect" handle_introspect;
     get "/idp/auth" static_handler;
+    get "/idp/select" select_handler;
   ]
 end

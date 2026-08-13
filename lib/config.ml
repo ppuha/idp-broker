@@ -26,6 +26,8 @@ module Token_store = Store.Inmem_store (struct
   let to_string token = token.id |> Uuidm.to_string
 end)
 
-module Idp = Idp.Static
+module Idp_config = struct
+  let idps = [ (module Idp.Static : Idp.IDP) ]
+end
 
-module H = Handler.Make (Client_store) (Session_store) (Token_store) (Idp)
+module H = Handler.Make (Client_store) (Session_store) (Token_store) (Idp_config)

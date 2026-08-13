@@ -1,4 +1,5 @@
-module type S = sig
+module type IDP = sig
+  val name : string
   type auth_params
   type auth_result
   type auth_error
@@ -8,6 +9,7 @@ module type S = sig
 end
 
 module Static = struct
+  let name = "static"
   type auth_params = string * string
   type auth_result = bool
   type auth_error = string
@@ -16,5 +18,9 @@ module Static = struct
   let authenticate (username, password)=
     if username = "foo" && password = "bar"
       then Ok(true)
-    else Error("unathorized")
+      else Error("unathorized")
+end
+
+module type CONFIG = sig
+  val idps : (module IDP) list
 end
